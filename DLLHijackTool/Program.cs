@@ -10,26 +10,27 @@ namespace DLLHijackTool
         static void Main(string[] args)
         {
             Parser.Default.ParseArguments<CommandLineArgs>(args)
-                  .WithParsed<CommandLineArgs>(o =>
+                  .WithParsed(args =>
                   {
-                      Run(o);
+                      Run(args);
                   });
         }
 
+        private static List<string> _knownDLLs = new List<string>();
+
         private static void Run(CommandLineArgs args)
         {
-
-
             var dllHijacker = new DLLHijacker();
 
             var processes = Process.GetProcesses();
-
 
             var processPaths = dllHijacker.RetrieveProcessesPath(processes);
             var servicePaths = dllHijacker.GetServicePaths();
 
             Console.WriteLine($"Was able to read {processes.Length} processes");
             Console.WriteLine($"Was able to read {servicePaths.Count} services");
+
+            _knownDLLs = dllHijacker.RetrieveKnownDLLs();
 
             var mapPathToDll = new Dictionary<string, List<string>>();
 
@@ -80,14 +81,13 @@ namespace DLLHijackTool
 
         private static void MapDLLs(DLLHijacker dllHijacker, Dictionary<string, List<string>> mapPathToDll, string path)
         {
-            var knownDLLs = dllHijacker.RetrieveKnownDLLs();
             var apiSetStart = "api-ms-win";
             var apiSetStart2 = "ext-ms-win";
             var executableDlls = dllHijacker.RetrieveExecutableDLLs(path);
             var cleanedDlls = new List<string>();
             foreach (var dll in executableDlls)
             {
-                if (knownDLLs.Contains(dll) || dll.StartsWith(apiSetStart) || dll.StartsWith(apiSetStart2)) continue;
+                if (_knownDLLs.Contains(dll) || dll.StartsWith(apiSetStart) || dll.StartsWith(apiSetStart2)) continue;
                 cleanedDlls.Add(dll);
             }
             mapPathToDll[path] = cleanedDlls;
