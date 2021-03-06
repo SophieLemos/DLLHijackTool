@@ -89,21 +89,18 @@ namespace DLLHijackTool
             var inSystemDirectory = File.Exists(Path.Combine(Environment.SystemDirectory, dll));
             var inWindowsDirectory = File.Exists(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), dll));
             bool canWriteApplicationDir = false;
-            if (!inApplicationDir)
-            {
-                var dirInfo = new DirectoryInfo(path);
-                var acl = dirInfo.GetAccessControl(AccessControlSections.All);
-                var rules = acl.GetAccessRules(true, true, typeof(NTAccount));
+            var dirInfo = new DirectoryInfo(path);
+            var acl = dirInfo.GetAccessControl(AccessControlSections.All);
+            var rules = acl.GetAccessRules(true, true, typeof(NTAccount));
 
-                foreach (AuthorizationRule rule in rules)
+            foreach (AuthorizationRule rule in rules)
+            {
+                if (rule.IdentityReference.Value.Equals(acccountName, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    if (rule.IdentityReference.Value.Equals(acccountName, StringComparison.CurrentCultureIgnoreCase))
+                    var filesystemAccessRule = (FileSystemAccessRule)rule;
+                    if ((filesystemAccessRule.FileSystemRights & FileSystemRights.WriteData) > 0 && filesystemAccessRule.AccessControlType != AccessControlType.Deny)
                     {
-                        var filesystemAccessRule = (FileSystemAccessRule)rule;
-                        if ((filesystemAccessRule.FileSystemRights & FileSystemRights.WriteData) > 0 && filesystemAccessRule.AccessControlType != AccessControlType.Deny)
-                        {
-                            canWriteApplicationDir = true;
-                        }
+                        canWriteApplicationDir = true;
                     }
                 }
             }
