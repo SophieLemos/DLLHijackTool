@@ -87,7 +87,7 @@ namespace DLLHijackTool
             var cleanedDlls = new List<string>();
             foreach (var dll in executableDlls)
             {
-                if (_knownDLLs.Contains(dll) || dll.StartsWith(apiSetStart) || dll.StartsWith(apiSetStart2)) continue;
+                if (_knownDLLs.Contains(dll.ToLower()) || dll.StartsWith(apiSetStart) || dll.StartsWith(apiSetStart2)) continue;
                 cleanedDlls.Add(dll);
             }
             mapPathToDll[path] = cleanedDlls;
